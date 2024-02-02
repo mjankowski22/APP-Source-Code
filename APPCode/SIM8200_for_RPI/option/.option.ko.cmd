@@ -1,0 +1,1 @@
+cmd_/home/b-hermanowski/SIM8200_for_RPI/option/option.ko := ld -r  -EL  --build-id=sha1  -T scripts/module.lds -o /home/b-hermanowski/SIM8200_for_RPI/option/option.ko /home/b-hermanowski/SIM8200_for_RPI/option/option.o /home/b-hermanowski/SIM8200_for_RPI/option/option.mod.o;  true

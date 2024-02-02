@@ -1,0 +1,2 @@
+/home/b-hermanowski/SIM8200_for_RPI/option/option.o
+
