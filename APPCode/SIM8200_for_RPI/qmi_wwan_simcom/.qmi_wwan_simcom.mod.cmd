@@ -1,1 +1,0 @@
-cmd_/home/b-hermanowski/SIM8200_for_RPI/qmi_wwan_simcom/qmi_wwan_simcom.mod := { echo  /home/b-hermanowski/SIM8200_for_RPI/qmi_wwan_simcom/qmi_wwan_simcom.o;  echo; } > /home/b-hermanowski/SIM8200_for_RPI/qmi_wwan_simcom/qmi_wwan_simcom.mod

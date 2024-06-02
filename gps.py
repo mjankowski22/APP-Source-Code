@@ -23,21 +23,33 @@ def initialize_gps():
 
 
 def get_gps_data():
-    
-    gps_data = send_command('AT+CGPSINFO\r\n')
-    gps_data =gps_data[26:].split(',')
-
     try:
-        lon = gps_data[1]+str(float(gps_data[0])/100)
-        lat = gps_data[3]+str(float(gps_data[2])/100)
+        gps_data = send_command('AT+CGPSINFO\r\n')
+        gps_data =gps_data[26:].split(',')
+        print(gps_data)
     except:
-        lon=0
-        lat=0
-    return lon,lat
+        return 0,0
+    try:
+        # Konwersja szerokości geograficznej
+        lat_deg = float(gps_data[0][:2])
+        lat_min = float(gps_data[0][2:])
+        lat = lat_deg + lat_min / 60.0
+        lat = gps_data[1]+str(lat)
+        
+        # Konwersja długości geograficznej
+        lon_deg = float(gps_data[2][:2])
+        lon_min = float(gps_data[2][2:])
+        lon = lon_deg + lon_min / 60.0
+        lon = gps_data[3]+str(lon)
+    except:
+        lon = 0
+        lat = 0
+
+    return lon, lat
 
 
 if __name__ == '__main__':
-    initialize()
+    initialize_gps()
     time.sleep(5)
     
         

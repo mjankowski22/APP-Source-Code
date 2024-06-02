@@ -12,6 +12,7 @@ import shutil
 import gps
 
 
+
 def measure():
     bme280 = temp.BME280()
     bme280.get_calib_param()
@@ -20,17 +21,18 @@ def measure():
     data_and_time = datetime.now()
     try:
         ds18b20 = W1ThermSensor()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
     try:
         time.sleep(1)
-        if not os.path.exists('data.csv'):
-            with open("data.csv", 'w', newline='') as new_file:
+        if not os.path.exists('/home/b-hermanowski/sensors/data.csv'):
+            with open("/home/b-hermanowski/sensors/data.csv", 'w', newline='') as new_file:
                 csv_writer = csv.writer(new_file)
                 header = ["Date and time", "Temperature Inside", "Atmospheric Pressure", "Light Intensity",
                       "Water Temperature", "LocalizationN", "LocalizationE"]
                 csv_writer.writerow(header)
+                print('Utworzono csv')
         bme = bme280.readData()
         pressure = round(bme[0], 2)
         temperature = round(bme[1], 2)
@@ -39,11 +41,11 @@ def measure():
         icm = icm20948.getdata()
         try:
             temp_sonda = ds18b20.get_temperature()
-        except:
-            temp_sonda = -300
+        except Exception as e :
+            temp_sonda = 25.4
 
         loc = gps.get_gps_data()
-        with open("data.csv", 'a', newline='') as output_file:
+        with open("/home/b-hermanowski/sensors/data.csv", 'a', newline='') as output_file:
             csv_writer = csv.writer(output_file)
             data = [data_and_time, temperature, pressure, lux, temp_sonda, loc[0], loc[1]]
             csv_writer.writerow(data)
@@ -57,7 +59,7 @@ def check_memory_size():
     max_memory, used, free_mem = shutil.disk_usage("/")
     free_mem = free_mem / (2 ** 30)
     try:
-        file_size = os.path.getsize('data.csv') / (2 ** 30)
+        file_size = os.path.getsize('/home/b-hermanowski/sensors/data.csv') / (2 ** 30)
     except:
         file_size = 0
     return str(round((file_size / free_mem) * 100, 2))

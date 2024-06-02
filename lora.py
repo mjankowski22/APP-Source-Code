@@ -7,6 +7,10 @@ import sonda
 import gps
 import fiveg
 import wifi
+import RPi.GPIO as GPIO
+from ina import get_voltage
+
+
 
 INTERVAL = 10
 time_start = time.time()
@@ -36,9 +40,20 @@ def lora_loop_step():
     
     time_now = time.time()
     if time_now-time_start>INTERVAL:
-        gps_data = gps.get_gps_data()
+        try:
+            gps_data = gps.get_gps_data()
+        except:
+            gps_data = [0,0]
+        try:
+            voltage = get_voltage()
+        except:
+            voltage = 0
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        msg = f'M,{timestamp},{gps_data[0]},{gps_data[1]},{sonda.check_memory_size()}'
+        fiveg_connection = 1 if fiveg.check_connection() else 0
+        wifi_addr = wifi.check_wifi()
+        wifi_addr = '' if wifi_addr == False else wifi_addr
+        msg = f'M,{wifi_addr},{gps_data[0]},{gps_data[1]},{sonda.check_memory_size()},{fiveg_connection},{voltage}'
+        print(msg)
         send_command_without_output(f'AT+MSG="{msg}"\r\n')
         time_start=time_now
         
@@ -60,48 +75,35 @@ def lora_loop_step():
                 if values.get('interval',0)!=0:
                     INTERVAL = values['interval']
                     msg = f'I,{INTERVAL}'
-                if values.get('5g_check',0)==1:
-                    connection = fiveg.check_connection()
-                    if connection:
-                        msg = f'P,{1}'
-                    else:
-                        msg = f'P,{0}'
+                    send_command_without_output(f'AT+MSG="{msg}"\r\n')
                 if values.get('5g_send_whole',0)==1:
-                    response = fiveg.send_whole_file()
+                    response = fiveg.send_whole_file(values.get('delete',0))
                     if response:
                         msg = f'G,{1}'
                     else:
                         msg = f'G,{0}'
+                    send_command_without_output(f'AT+MSG="{msg}"\r\n')
                 if values.get('5g_send_part',0)==1:
-                    response = fiveg.send_part(values.get('start'),values.get('end'))
+                    response = fiveg.send_part(values.get('start'),values.get('end'),values.get('delete',0))
                     if response:
-                        msg = f'A,{1}'
+                        msg = f'G,{1}'
                     else:
-                        msg = f'A,{0}'
+                        msg = f'G,{0}'
+                    send_command_without_output(f'AT+MSG="{msg}"\r\n')
                 
-                if values.get('wifi_check',0)==1:
-                    connection = wifi.check_connection()
-                    if connection:
-                        msg = f'B,{1}'
+                if values.get('turn_wifi',0)==1:
+                    state = GPIO.input(21)
+                    if state == GPIO.HIGH:
+                        GPIO.output(21,GPIO.LOW)
                     else:
-                        msg = f'B,{0}'
-                if values.get('wifi_send_whole',0)==1:
-                    response = wifi.send_whole_file()
-                    if response:
-                        msg = f'C,{1}'
-                    else:
-                        msg = f'C,{0}'
-                if values.get('wifi_send_part',0)==1:
-                    response = wifi.send_part(values.get('start'),values.get('end'))
-                    if response:
-                        msg = f'D,{1}'
-                    else:
-                        msg = f'D,{0}'
+                        GPIO.output(21,GPIO.HIGH)
                 
-                send_command_without_output(f'AT+MSG="{msg}"\r\n')
+                
+                
+                
 
 if __name__ == '__main__':
-    initialize()
+    initialize_lora()
     time.sleep(5)
     
         
